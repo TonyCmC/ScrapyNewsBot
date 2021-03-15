@@ -87,8 +87,8 @@ ITEM_PIPELINES = {
 # HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # Telegram Bot Token
-TG_TOKEN = '868710400:AAFE41jIfeibZNTx2eYXiTg6wg23ICEV-90'
-TG_CHAT_ID = '-456132934'
+TG_TOKEN = ' '
+TG_CHAT_ID = ' '
 
 
 # MySQL Credentials
