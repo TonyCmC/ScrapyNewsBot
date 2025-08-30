@@ -1,7 +1,7 @@
 # Scrapy News Telegram bot (新聞關鍵字機器人)
 
 ## Description:
-In order to receive the latest news about the finance, I build up this project to crawl the latest news via the RSS or the news list provided by Udn, ChinaTimes, Ettoday. I use Scrapy framework, split the keywords by Jieba package then send the result to particular Telegram Group with Telegram Bot API.
+In order to receive the latest news about finance, I build up this project to crawl the latest news via the RSS or the news list provided by Udn, ChinaTimes, Ettoday. I use Scrapy framework, split the keywords by Jieba package then send the result to a particular Telegram Group with Telegram Bot API.
 
 ### Message Format:
 ```
