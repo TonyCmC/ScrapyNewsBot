@@ -12,10 +12,6 @@ class NewsProcessor:
     def __init__(self):
         self.telegram = TelegramNotifier(config.TG_TOKEN, config.TG_CHAT_ID)
         self.openai_service = OpenAIService(config.OPENAI_API_KEY)
-        
-        # 讀取股票清單
-        with open(config.STOCK_JSON_PATH, 'r', encoding='utf-8') as f:
-            self.stock_list = json.load(f)
     
     def process_news(self, news_item: Dict[str, str], crawler_name: str) -> bool:
         """
@@ -42,7 +38,7 @@ class NewsProcessor:
         
         try:
             summary = self.openai_service.summarize_news(title, content)
-            keywords = self.openai_service.extract_finance_keywords(title, content, self.stock_list)
+            keywords = self.openai_service.extract_finance_keywords(title, content)
             keywords_str = ' '.join(sorted(keywords)) if keywords else ""
             
             # 組合訊息

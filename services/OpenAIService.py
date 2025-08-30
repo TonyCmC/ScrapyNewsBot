@@ -36,7 +36,7 @@ class OpenAIService:
         ]
         return self._make_request(messages, max_tokens=150)
     
-    def extract_finance_keywords(self, title: str, content: str, stock_list: dict) -> Set[str]:
+    def extract_finance_keywords(self, title: str, content: str) -> Set[str]:
         messages = [
             {
                 "role": "system",
@@ -56,8 +56,6 @@ class OpenAIService:
             for keyword in result.split(','):
                 keyword = keyword.strip()
                 if keyword.startswith('#'):
-                    stock_name = keyword[1:]
-                    if stock_name in stock_list.values():
-                        keywords.add(keyword)
+                    keywords.add(keyword)
         
         return keywords
