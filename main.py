@@ -10,6 +10,8 @@ from crawlers.udn_crawler import UdnCrawler
 from crawlers.ettoday_crawler import EttodayCrawler
 from crawlers.ctee_crawler import CteeCrawler
 from crawlers.ltn_crawler import LtnCrawler
+from crawlers.cnyes_crawler import CnyesCrawler
+from crawlers.yahoo_crawler import YahooCrawler
 from processors.news_processor import NewsProcessor
 
 
@@ -25,7 +27,9 @@ class NewsManager:
             'udn': UdnCrawler(),
             'ettoday': EttodayCrawler(),
             # 'ctee': CteeCrawler(),
-            'ltn': LtnCrawler()
+            'ltn': LtnCrawler(),
+            'cnyes': CnyesCrawler(),
+            'yahoo': YahooCrawler()
         }
     
     def run_crawler(self, crawler_name: str):
@@ -83,13 +87,29 @@ def main():
     # )
     #
     scheduler.add_job(
-        manager.run_crawler, 
-        'interval', 
-        args=['ltn'], 
+        manager.run_crawler,
+        'interval',
+        args=['ltn'],
         seconds=100,
         id='ltn_job'
     )
-    
+
+    scheduler.add_job(
+        manager.run_crawler,
+        'interval',
+        args=['cnyes'],
+        seconds=50,
+        id='cnyes_job'
+    )
+
+    scheduler.add_job(
+        manager.run_crawler,
+        'interval',
+        args=['yahoo'],
+        seconds=110,
+        id='yahoo_job'
+    )
+
     print("新聞爬蟲排程器已啟動...")
     try:
         scheduler.start()

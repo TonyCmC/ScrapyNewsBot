@@ -8,6 +8,8 @@ from crawlers.udn_crawler import UdnCrawler
 from crawlers.ettoday_crawler import EttodayCrawler
 from crawlers.ctee_crawler import CteeCrawler
 from crawlers.ltn_crawler import LtnCrawler
+from crawlers.cnyes_crawler import CnyesCrawler
+from crawlers.yahoo_crawler import YahooCrawler
 from processors.news_processor import NewsProcessor
 
 
@@ -54,6 +56,8 @@ if __name__ == '__main__':
     # test_crawler_only(EttodayCrawler, "ETtoday新聞雲")
     test_crawler_only(CteeCrawler, "工商時報")
     # test_crawler_only(LtnCrawler, "自由財經")
+    test_crawler_only(CnyesCrawler, "鉅亨網")
+    test_crawler_only(YahooCrawler, "Yahoo奇摩股市")
     
     # 測試完整流程（需要設定 .env）
     # test_full_pipeline()
