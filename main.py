@@ -12,6 +12,7 @@ from crawlers.ctee_crawler import CteeCrawler
 from crawlers.ltn_crawler import LtnCrawler
 from crawlers.cnyes_crawler import CnyesCrawler
 from crawlers.yahoo_crawler import YahooCrawler
+from crawlers.trendforce_crawler import TrendForceCrawler
 from processors.news_processor import NewsProcessor
 
 
@@ -29,7 +30,8 @@ class NewsManager:
             # 'ctee': CteeCrawler(),
             'ltn': LtnCrawler(),
             'cnyes': CnyesCrawler(),
-            'yahoo': YahooCrawler()
+            'yahoo': YahooCrawler(),
+            'trendforce': TrendForceCrawler()
         }
     
     def run_crawler(self, crawler_name: str):
@@ -108,6 +110,16 @@ def main():
         args=['yahoo'],
         seconds=110,
         id='yahoo_job'
+    )
+
+    # TrendForce 為研究機構的產業快訊，更新頻率遠低於一般新聞網站（約每週數篇），
+    # 排程間隔拉長為 5 分鐘，避免不必要的頻繁請求
+    scheduler.add_job(
+        manager.run_crawler,
+        'interval',
+        args=['trendforce'],
+        seconds=300,
+        id='trendforce_job'
     )
 
     print("新聞爬蟲排程器已啟動...")
