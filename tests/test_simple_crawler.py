@@ -11,6 +11,7 @@ from crawlers.ltn_crawler import LtnCrawler
 from crawlers.cnyes_crawler import CnyesCrawler
 from crawlers.yahoo_crawler import YahooCrawler
 from crawlers.trendforce_crawler import TrendForceCrawler
+from crawlers.technews_crawler import TechNewsCrawler
 from processors.news_processor import NewsProcessor
 
 
@@ -60,6 +61,7 @@ if __name__ == '__main__':
     test_crawler_only(CnyesCrawler, "鉅亨網")
     test_crawler_only(YahooCrawler, "Yahoo奇摩股市")
     test_crawler_only(TrendForceCrawler, "TrendForce")
+    test_crawler_only(TechNewsCrawler, "TechNews科技新報")
     
     # 測試完整流程（需要設定 .env）
     # test_full_pipeline()

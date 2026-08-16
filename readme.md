@@ -1,7 +1,7 @@
 # News Telegram Bot (新聞關鍵字機器人)
 
 ## Description
-In order to receive the latest finance news, this project crawls the latest article from several Taiwanese news sites — UDN (經濟日報), ChinaTimes (中時電子報), ETtoday (ETtoday新聞雲), LTN (自由財經), Cnyes (鉅亨網), Yahoo Stock (Yahoo奇摩股市), TrendForce (集邦科技), and CTEE (工商時報, currently disabled) — via their RSS feeds, live news lists, or public JSON APIs. Each new article is summarized and has its related stock keywords extracted by OpenAI (`gpt-4o-mini`), then the result is sent to a Telegram group/channel via the Telegram Bot API. Crawling is scheduled with APScheduler, polling each source on its own interval.
+In order to receive the latest finance news, this project crawls the latest article from several Taiwanese news sites — UDN (經濟日報), ChinaTimes (中時電子報), ETtoday (ETtoday新聞雲), LTN (自由財經), Cnyes (鉅亨網), Yahoo Stock (Yahoo奇摩股市), TrendForce (集邦科技), TechNews (科技新報), and CTEE (工商時報, currently disabled) — via their RSS feeds, live news lists, or public JSON APIs. Each new article is summarized and has its related stock keywords extracted by OpenAI (`gpt-4o-mini`), then the result is sent to a Telegram group/channel via the Telegram Bot API. Crawling is scheduled with APScheduler, polling each source on its own interval.
 
 > Note: this project previously used the Scrapy framework; it has since been refactored to a set of plain crawler classes (see `crawlers/`) scheduled by APScheduler. There is no Scrapy dependency anymore despite the repo name.
 
@@ -53,7 +53,7 @@ YYYY-mm-dd HH:MM:SS
 
 ## 專案說明
 
-為了方便接收最新的財經新聞，此專案會定期爬取聯合新聞網(UDN, 經濟日報)、中時電子報、ETtoday新聞雲、自由財經(LTN)、鉅亨網(Cnyes)、Yahoo奇摩股市、TrendForce(集邦科技)及工商時報(CTEE，目前停用)等新聞網站的最新一則財經新聞（來源包含 RSS、即時新聞列表頁，或網站前端使用的公開 JSON API），透過 OpenAI（`gpt-4o-mini`）產生摘要並萃取相關股票關鍵字，再以 Telegram Bot API 將整理好的訊息發送至指定的 Telegram 群組/頻道。排程由 APScheduler 負責，各新聞來源以各自的時間間隔輪詢。
+為了方便接收最新的財經新聞，此專案會定期爬取聯合新聞網(UDN, 經濟日報)、中時電子報、ETtoday新聞雲、自由財經(LTN)、鉅亨網(Cnyes)、Yahoo奇摩股市、TrendForce(集邦科技)、TechNews(科技新報)及工商時報(CTEE，目前停用)等新聞網站的最新一則財經新聞（來源包含 RSS、即時新聞列表頁，或網站前端使用的公開 JSON API），透過 OpenAI（`gpt-4o-mini`）產生摘要並萃取相關股票關鍵字，再以 Telegram Bot API 將整理好的訊息發送至指定的 Telegram 群組/頻道。排程由 APScheduler 負責，各新聞來源以各自的時間間隔輪詢。
 
 > 註：本專案早期使用 Scrapy 框架，現已重構為一組獨立的爬蟲類別（見 `crawlers/`），改用 APScheduler 排程，目前已不再依賴 Scrapy。
 

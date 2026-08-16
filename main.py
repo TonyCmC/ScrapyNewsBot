@@ -13,6 +13,7 @@ from crawlers.ltn_crawler import LtnCrawler
 from crawlers.cnyes_crawler import CnyesCrawler
 from crawlers.yahoo_crawler import YahooCrawler
 from crawlers.trendforce_crawler import TrendForceCrawler
+from crawlers.technews_crawler import TechNewsCrawler
 from processors.news_processor import NewsProcessor
 
 
@@ -31,7 +32,8 @@ class NewsManager:
             'ltn': LtnCrawler(),
             'cnyes': CnyesCrawler(),
             'yahoo': YahooCrawler(),
-            'trendforce': TrendForceCrawler()
+            'trendforce': TrendForceCrawler(),
+            'technews': TechNewsCrawler()
         }
     
     def run_crawler(self, crawler_name: str):
@@ -120,6 +122,14 @@ def main():
         args=['trendforce'],
         seconds=300,
         id='trendforce_job'
+    )
+
+    scheduler.add_job(
+        manager.run_crawler,
+        'interval',
+        args=['technews'],
+        seconds=90,
+        id='technews_job'
     )
 
     print("新聞爬蟲排程器已啟動...")
