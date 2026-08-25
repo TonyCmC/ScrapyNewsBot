@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Optional
 from contextlib import contextmanager
+import os
+import signal
+import subprocess
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -65,7 +68,14 @@ class NewsCrawler(ABC):
     
     @contextmanager
     def browser_session(self):
-        """瀏覽器 context manager"""
+        """瀏覽器 context manager
+
+        注意：driver 的「建立」與「yield 給呼叫端使用」分成兩個獨立的 try 區塊。
+        若寫在同一個 try 底下，with 區塊內（呼叫端）拋出的例外會在 yield 這一行被
+        「啟動瀏覽器失敗」的 except 攔截並試圖再 yield 一次，這對 generator-based
+        context manager 是不合法的操作，會拋出令人誤解的
+        RuntimeError: generator didn't stop after throw()，蓋掉真正的錯誤訊息。
+        """
         driver = None
         try:
             options = Options()
@@ -77,16 +87,47 @@ class NewsCrawler(ABC):
             options.add_argument("--ignore-certificate-errors")
             options.add_argument("--incognito")
             options.add_argument(f'--user-agent={random.choice(self.USER_AGENTS)}')
-            
+
             driver = webdriver.Chrome(options=options)
-            yield driver
-            
+            # 部分新聞網站廣告/追蹤碼很多，headless 模式下 load 事件可能長時間不觸發，
+            # 若不設逾時，driver.get() 會卡住整個排程執行緒，Chrome 行程也永遠等不到 quit()
+            driver.set_page_load_timeout(30)
+            driver.set_script_timeout(30)
         except Exception as e:
             print(f"啟動瀏覽器失敗: {e}")
-            yield None
+            driver = None
+
+        try:
+            yield driver
         finally:
             if driver:
-                driver.quit()
+                try:
+                    driver.quit()
+                except Exception as quit_err:
+                    print(f"driver.quit() 失敗，嘗試強制清理殘留行程: {quit_err}")
+                    self._force_kill_driver(driver)
+
+    def _force_kill_driver(self, driver) -> None:
+        """driver.quit() 失敗時的最後防線：直接砍掉 chromedriver 及其底下的 Chrome 行程，
+        避免正常關閉流程失敗（例如 session 已失效）時，Chrome 行程變成孤兒殘留在背景。"""
+        service_process = getattr(getattr(driver, 'service', None), 'process', None)
+        if not service_process:
+            return
+        try:
+            pid = service_process.pid
+            # chromedriver 是 Chrome 本體的父行程，只砍 chromedriver 不保證 Chrome 會跟著結束，
+            # 所以先找出並砍掉所有子行程，再砍 chromedriver 自己
+            result = subprocess.run(
+                ['pgrep', '-P', str(pid)], capture_output=True, text=True, timeout=5
+            )
+            for child_pid in result.stdout.split():
+                try:
+                    os.kill(int(child_pid), signal.SIGKILL)
+                except (ProcessLookupError, ValueError):
+                    pass
+            service_process.kill()
+        except Exception as force_kill_err:
+            print(f"強制清理瀏覽器行程失敗: {force_kill_err}")
     
     def fetch_page_with_browser(self, driver, url: str) -> Optional[BeautifulSoup]:
         """使用現有的瀏覽器實例抓取網頁"""
