@@ -1,8 +1,9 @@
 import json
 import os
 import threading
-from typing import Dict
+from typing import Dict, Optional
 from services.OpenAIService import OpenAIService
+from services.StockCodeService import StockCodeService
 from services.TelegramNotifier import TelegramNotifier
 import config
 
@@ -14,9 +15,10 @@ class NewsProcessor:
     # 多個爬蟲可能同時讀寫 previous.log，需要鎖避免互相覆蓋彼此的紀錄
     _log_lock = threading.Lock()
 
-    def __init__(self):
+    def __init__(self, stock_code_service: Optional[StockCodeService] = None):
         self.telegram = TelegramNotifier(config.TG_TOKEN, config.TG_CHAT_ID)
         self.openai_service = OpenAIService(config.OPENAI_API_KEY)
+        self.stock_code_service = stock_code_service
     
     def process_news(self, news_item: Dict[str, str], crawler_name: str) -> bool:
         """
@@ -42,8 +44,9 @@ class NewsProcessor:
         content = news_item.get("content")
         
         try:
+            stock_code_map = self.stock_code_service.get_map() if self.stock_code_service else None
             summary = self.openai_service.summarize_news(title, content)
-            keywords = self.openai_service.extract_finance_keywords(title, content)
+            keywords = self.openai_service.extract_finance_keywords(title, content, stock_code_map)
             keywords_str = ' '.join(sorted(keywords)) if keywords else ""
             
             # 組合訊息

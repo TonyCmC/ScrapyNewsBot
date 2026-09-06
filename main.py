@@ -18,6 +18,8 @@ from crawlers.yahoo_crawler import YahooCrawler
 from crawlers.trendforce_crawler import TrendForceCrawler
 from crawlers.technews_crawler import TechNewsCrawler
 from processors.news_processor import NewsProcessor
+from services.StockCodeService import StockCodeService
+import config
 
 
 TAIPEI_TZ = pytz.timezone('Asia/Taipei')
@@ -47,8 +49,8 @@ def job_id_of(crawler_name: str) -> str:
 class NewsManager:
     """新聞管理器 - 負責排程和協調爬蟲與處理器"""
 
-    def __init__(self):
-        self.processor = NewsProcessor()
+    def __init__(self, stock_code_service: StockCodeService = None):
+        self.processor = NewsProcessor(stock_code_service)
 
         # 初始化爬蟲
         self.crawlers = {
@@ -119,8 +121,16 @@ def apply_slow(scheduler: BlockingScheduler):
 
 def main():
     """主程式入口"""
-    manager = NewsManager()
+    # 台股上市櫃公司代號對照表：啟動時先同步一次確保可用，之後交給排程每日更新，
+    # 用來校正 OpenAI 提取股票關鍵字時可能出現的代號/上市狀態幻覺
+    stock_code_service = StockCodeService(config.STOCK_CODE_FILE)
+    stock_code_service.sync()
+
+    manager = NewsManager(stock_code_service)
     scheduler = BlockingScheduler(timezone=TAIPEI_TZ)
+
+    # 每日凌晨 7:00 重新同步一次上市櫃公司代號對照表（早於 8:00 恢復正常爬蟲頻率）
+    scheduler.add_job(stock_code_service.sync, 'cron', hour=7, minute=0, id='sync_stock_code_job')
 
     # 依基礎頻率註冊各爬蟲排程，實際頻率會依下方時段控制排程動態調整
     for name, seconds in BASE_INTERVALS.items():

@@ -1,6 +1,11 @@
 import json
+import re
 from openai import OpenAI
-from typing import List, Set
+from typing import Dict, List, Optional, Set
+
+# 解析模型輸出的「名稱(附註)」格式，附註可能是正確代號，也可能是模型自行
+# 加註的錯誤狀態文字（例如「未上市」）
+_NAME_ANNOTATION_PATTERN = re.compile(r'^(.*?)\(([^()]*)\)$')
 
 
 class OpenAIService:
@@ -47,7 +52,9 @@ class OpenAIService:
         # 100 個中文字約需 150~200 tokens，保留緩衝空間避免被硬性截斷
         return self._make_request(messages, max_tokens=300)
 
-    def extract_finance_keywords(self, title: str, content: str) -> Set[str]:
+    def extract_finance_keywords(
+        self, title: str, content: str, stock_code_map: Optional[Dict[str, str]] = None
+    ) -> Set[str]:
         messages = [
             {
                 "role": "system",
@@ -76,8 +83,33 @@ class OpenAIService:
                 for name in data.get("stocks", []):
                     name = name.strip()
                     if name:
+                        name = self._correct_stock_name(name, stock_code_map)
                         keywords.add(f"#{name}")
             except json.JSONDecodeError:
                 print(f"關鍵字提取失敗，OpenAI 回應非合法 JSON: {result}")
 
         return keywords
+
+    @staticmethod
+    def _correct_stock_name(name: str, stock_code_map: Optional[Dict[str, str]]) -> str:
+        """用本地上市櫃對照表校正模型輸出的股票代號
+
+        模型對代號沒把握時，偶爾會自行加註錯誤的狀態文字（例如把已上市
+        公司誤標成「未上市」），而不是照規則只留公司簡稱。若本地對照表
+        查得到正確代號就直接覆蓋；查不到、附註內容又含有中文字（判斷為
+        模型自行加註的說明文字，不是真正的代號，例如美股代號一定是英文
+        字母）時，則捨棄附註只留簡稱，避免顯示錯誤或無意義的狀態註記。
+        """
+        match = _NAME_ANNOTATION_PATTERN.match(name)
+        if not match:
+            return name
+
+        base_name, annotation = match.group(1).strip(), match.group(2).strip()
+
+        if stock_code_map and base_name in stock_code_map:
+            return f"{base_name}({stock_code_map[base_name]})"
+
+        if annotation and any('一' <= ch <= '鿿' for ch in annotation):
+            return base_name
+
+        return name
